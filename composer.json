@@ -1,0 +1,17 @@
+{
+    "name": "wpbournemouth/tweet-scheduler",
+    "description": "Automatically buffer tweets to market a meetup event",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Iain Poulson",
+            "email": "iain@polevaultweb.com"
+        }
+    ],
+    "require": {
+      "pksunkara/buffer-alpaca": "*",
+      "dms/meetup-api-client": "*",
+      "vlucas/phpdotenv": "*"
+    }
+}
