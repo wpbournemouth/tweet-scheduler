@@ -171,6 +171,13 @@ class scheduleMeetupTweets {
 		printf( '%d/%d tweets buffered!', $count, count( $tweets ) );
 	}
 
+	/**
+	 * Get datetime for a schedule string
+	 * 
+	 * @param string $schedule
+	 *
+	 * @return bool|\DateTime
+	 */
 	protected function getSchedule( $schedule ) {
 		if ( 'now' === $schedule ) {
 			$now = new \DateTime();
@@ -179,7 +186,10 @@ class scheduleMeetupTweets {
 			return $now;
 		}
 
-		$days = substr( $schedule, strpos( $schedule, '-' ) + 1 );
+		$parts = explode( '-', $schedule );
+		array_shift( $parts );
+
+		$days = $parts[0];
 		$date = clone $this->meetup['date'];
 		$date->modify( '-' . $days . ' days' );
 
@@ -193,10 +203,18 @@ class scheduleMeetupTweets {
 		$hour = 11;
 		$min  = 00;
 		if ( getenv( 'BUFFER_TWEET_TIME' ) ) {
-			$time = explode( ':', getenv( 'BUFFER_TWEET_TIME' ) );
+			$time_str = explode( ':', getenv( 'BUFFER_TWEET_TIME' ) );
+			$hour = $time_str[0];
+			$min  = $time_str[1];
+		}
+
+		if ( isset( $parts[1] ) ) {
+			// Allow default time to be overridden
+			$time = explode( ':', $parts[1] );
 			$hour = $time[0];
 			$min  = $time[1];
 		}
+
 		$date->setTime( $hour, $min );
 
 		return $date;
