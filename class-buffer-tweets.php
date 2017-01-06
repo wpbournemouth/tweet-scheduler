@@ -159,6 +159,9 @@ class scheduleMeetupTweets {
 
 			$options['body']['scheduled_at'] = $date->format( \DateTime::ISO8601 );
 
+			//printf( $date->format( \DateTime::ISO8601 ) . ' -  '.  $tweet . '<br>' );
+			//continue;
+
 			$response = $buffer->user()->createUpdate( $tweet, array(
 				getenv( 'BUFFER_ACCOUNT_ID' ),
 			), $options );
@@ -173,7 +176,7 @@ class scheduleMeetupTweets {
 
 	/**
 	 * Get datetime for a schedule string
-	 * 
+	 *
 	 * @param string $schedule
 	 *
 	 * @return bool|\DateTime
