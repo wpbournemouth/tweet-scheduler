@@ -77,7 +77,11 @@ class scheduleMeetupTweets {
 
 		$count = 0;
 		foreach ( $tweets as $schedule => $tweet ) {
-			$date                            = $this->getSchedule( $schedule );
+			if ( false === ( $date = $this->getSchedule( $schedule ) ) ) {
+				// Don't buffer tweets scheduled in the past.
+				continue;
+			}
+
 			$options['body']['scheduled_at'] = $date->format( \DateTime::ISO8601 );
 
 			$response = $buffer->user()->createUpdate( $tweet, array(
@@ -103,6 +107,13 @@ class scheduleMeetupTweets {
 		$days = substr( $schedule, strpos( $schedule, '-' ) + 1 );
 		$date = clone $this->meetup['date'];
 		$date->modify( '-' . $days . ' days' );
+
+		$today = new \DateTime();
+		$today->setTime( 23, 59 );
+		if ( $date < $today ) {
+			// Schedule in past, ignore.
+			return false;
+		}
 
 		$hour = 11;
 		$min  = 00;
