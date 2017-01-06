@@ -8,22 +8,19 @@ class scheduleMeetupTweets {
 
 	protected $meetup;
 	protected $meetup_group;
-	protected $speaker_twitter_handle;
-	protected $talk_title;
+	protected $talks;
 	protected $tweets;
 
 	protected $meetup_client;
 
 	/**
 	 * scheduleMeetupTweets constructor.
-	 *
-	 * @param string $speaker_twitter_handle
-	 * @param string $talk_title
+
+	 * @param array $talks
 	 * @param array  $tweets
 	 */
-	public function __construct( $speaker_twitter_handle, $talk_title, $tweets ) {
-		$this->speaker_twitter_handle = $speaker_twitter_handle;
-		$this->talk_title             = $talk_title;
+	public function __construct( $talks, $tweets ) {
+		$this->talks = $talks;
 		$this->tweets                 = $tweets;
 		$this->meetup_group           = getenv( 'MEETUP_GROUP_URL' );
 
@@ -41,17 +38,95 @@ class scheduleMeetupTweets {
 		$this->meetup['date'] = $meetup_date;
 	}
 
-	protected function replaceTweetData( $tweets ) {
+	/**
+	 * Get speaker handle
+	 *
+	 * @param bool $lightning
+	 *
+	 * @return mixed
+	 */
+	protected function get_speaker_handle( $lightning = false ) {
+		foreach ( $this->talks as $talk ) {
+			if ( $lightning && isset( $talk['lightning'] ) && $talk['lightning'] ) {
+				return $talk['handle'];
+			}
+
+			if ( ! $lightning && ( ! isset( $talk['lightning'] ) || ! $talk['lightning'] ) ) {
+				return $talk['handle'];
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get speaker handle
+	 *
+	 * @param bool $lightning
+	 *
+	 * @return mixed
+	 */
+	protected function get_talk_title( $lightning = false ) {
+		foreach ( $this->talks as $talk ) {
+			if ( $lightning && isset( $talk['lightning'] ) && $talk['lightning'] ) {
+				return $talk['title'];
+			}
+
+			if ( ! $lightning && ( ! isset( $talk['lightning'] ) || ! $talk['lightning'] ) ) {
+				return $talk['title'];
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Does the tweet string contain any tags that haven't been replaced?
+	 *
+	 * @param array $replacements
+	 * @param string $tweet
+	 *
+	 * @return bool
+	 */
+	protected function tweet_contains_unreplaced_tags( $replacements, $tweet ) {
+		foreach ( $replacements as $search => $replace ) {
+			if ( false !== $replace ) {
+				// Replacement has happened on this tag
+				continue;
+			}
+
+			if ( false !== strpos( $tweet, $search ) ) {
+				// Tag exists in tweet
+				return true;
+			}
+		}
+
+		// No unreplaced tags in tweet
+		return false;
+	}
+
+	/**
+	 * Replace data in tweets
+	 *
+	 * @return array
+	 */
+	protected function replaceTweetData() {
 		$replacements = array(
-			'[speaker_handle]'    => $this->speaker_twitter_handle,
-			'[talk_title]'        => $this->talk_title,
-			'[meetup_date]'       => $this->meetup['date']->format( 'D jS M' ),
-			'[meetup_link]'       => $this->meetup['link'],
-			'[meetup_group_link]' => 'http://www.meetup.com/' . $this->meetup_group,
+			'[speaker_handle]'           => $this->get_speaker_handle(),
+			'[talk_title]'               => $this->get_talk_title(),
+			'[lightning_speaker_handle]' => $this->get_speaker_handle( true ),
+			'[lightning_talk_title]'     => $this->get_talk_title( true ),
+			'[meetup_date]'              => $this->meetup['date']->format( 'D jS M' ),
+			'[meetup_link]'              => $this->meetup['link'],
+			'[meetup_group_link]'        => 'http://www.meetup.com/' . $this->meetup_group,
 		);
 
 		$replaced_tweets = array();
-		foreach ( $tweets as $schedule => $tweet ) {
+		foreach ( $this->tweets as $schedule => $tweet ) {
+			if ( $this->tweet_contains_unreplaced_tags( $replacements, $tweet ) ) {
+				continue;
+			}
+
 			$replaced_tweets[ $schedule ] = str_replace( array_keys( $replacements ), array_values( $replacements ), $tweet );
 		}
 
@@ -71,7 +146,7 @@ class scheduleMeetupTweets {
 	}
 
 	public function run() {
-		$tweets = $this->replaceTweetData( $this->tweets );
+		$tweets = $this->replaceTweetData();
 
 		$buffer = new Client( getenv( 'BUFFER_ACCESS_TOKEN' ), array() );
 
