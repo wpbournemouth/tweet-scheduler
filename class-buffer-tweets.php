@@ -159,7 +159,7 @@ class scheduleMeetupTweets {
 
 			$options['body']['scheduled_at'] = $date->format( \DateTime::ISO8601 );
 
-			//printf( $date->format( \DateTime::ISO8601 ) . ' -  '.  $tweet . '<br>' );
+			//print( $date->format( \DateTime::ISO8601 ) . ' -  '.  $tweet . '<br>' );
 			//continue;
 
 			$response = $buffer->user()->createUpdate( $tweet, array(
@@ -197,7 +197,6 @@ class scheduleMeetupTweets {
 		$date->modify( '-' . $days . ' days' );
 
 		$today = new \DateTime();
-		$today->setTime( 23, 59 );
 		if ( $date < $today ) {
 			// Schedule in past, ignore.
 			return false;
