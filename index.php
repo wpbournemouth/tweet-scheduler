@@ -5,19 +5,21 @@ require_once 'class-buffer-tweets.php';
 $dotenv = new Dotenv\Dotenv( __DIR__ );
 $dotenv->load();
 
-$speaker_handle = '@tweetingsherry';
-$talk_title     = 'marketing WordPress products';
-
 $talks = array(
 	array(
-		'handle' => 'Ben Levy',
-		'title' => 'marketing WordPress products',
-		'lightning' => false,
+		'handle' => '@ifingers',
+		'title' => 'accessibility with #WordPress',
+		'main' => true,
 	),
 	array(
-		'handle' => '@polevaultweb',
-		'title' => 'the awesome @wpcli',
+		'handle' => '@tweetingsherry',
+		'title' => 'giving talks (#meta)',
 		'lightning' => true,
+	),
+	array(
+		'handle' => '@moblimic',
+		'title' => '@docker & Bedrock with #WordPress',
+		'lightning_2' => true,
 	),
 );
 

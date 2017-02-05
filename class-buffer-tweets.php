@@ -41,17 +41,13 @@ class scheduleMeetupTweets {
 	/**
 	 * Get speaker handle
 	 *
-	 * @param bool $lightning
+	 * @param string $type
 	 *
 	 * @return mixed
 	 */
-	protected function get_speaker_handle( $lightning = false ) {
+	protected function get_speaker_handle( $type = 'main' ) {
 		foreach ( $this->talks as $talk ) {
-			if ( $lightning && isset( $talk['lightning'] ) && $talk['lightning'] ) {
-				return $talk['handle'];
-			}
-
-			if ( ! $lightning && ( ! isset( $talk['lightning'] ) || ! $talk['lightning'] ) ) {
+			if ( isset( $talk[ $type ] ) && $talk[ $type ] ) {
 				return $talk['handle'];
 			}
 		}
@@ -60,19 +56,15 @@ class scheduleMeetupTweets {
 	}
 
 	/**
-	 * Get speaker handle
+	 * Get speaker title
 	 *
-	 * @param bool $lightning
+	 * @param string $type
 	 *
 	 * @return mixed
 	 */
-	protected function get_talk_title( $lightning = false ) {
+	protected function get_talk_title( $type = 'main' ) {
 		foreach ( $this->talks as $talk ) {
-			if ( $lightning && isset( $talk['lightning'] ) && $talk['lightning'] ) {
-				return $talk['title'];
-			}
-
-			if ( ! $lightning && ( ! isset( $talk['lightning'] ) || ! $talk['lightning'] ) ) {
+			if ( isset( $talk[ $type ] ) && $talk[ $type ] ) {
 				return $talk['title'];
 			}
 		}
@@ -112,13 +104,15 @@ class scheduleMeetupTweets {
 	 */
 	protected function replaceTweetData() {
 		$replacements = array(
-			'[speaker_handle]'           => $this->get_speaker_handle(),
-			'[talk_title]'               => $this->get_talk_title(),
-			'[lightning_speaker_handle]' => $this->get_speaker_handle( true ),
-			'[lightning_talk_title]'     => $this->get_talk_title( true ),
-			'[meetup_date]'              => $this->meetup['date']->format( 'D jS M' ),
-			'[meetup_link]'              => $this->meetup['link'],
-			'[meetup_group_link]'        => 'http://www.meetup.com/' . $this->meetup_group,
+			'[speaker_handle]'             => $this->get_speaker_handle( 'main' ),
+			'[talk_title]'                 => $this->get_talk_title( 'main' ),
+			'[lightning_speaker_handle]'   => $this->get_speaker_handle( 'lightning' ),
+			'[lightning_talk_title]'       => $this->get_talk_title( 'lightning' ),
+			'[lightning_2_speaker_handle]' => $this->get_speaker_handle( 'lightning_2' ),
+			'[lightning_2_talk_title]'     => $this->get_talk_title( 'lightning_2' ),
+			'[meetup_date]'                => $this->meetup['date']->format( 'D jS M' ),
+			'[meetup_link]'                => $this->meetup['link'],
+			'[meetup_group_link]'          => 'http://www.meetup.com/' . $this->meetup_group,
 		);
 
 		$replaced_tweets = array();
@@ -127,7 +121,9 @@ class scheduleMeetupTweets {
 				continue;
 			}
 
-			$replaced_tweets[ $schedule ] = str_replace( array_keys( $replacements ), array_values( $replacements ), $tweet );
+			$tweet = str_replace( array_keys( $replacements ), array_values( $replacements ), $tweet );
+
+			$replaced_tweets[ $schedule ] = $tweet;
 		}
 
 		return $replaced_tweets;
@@ -159,8 +155,8 @@ class scheduleMeetupTweets {
 
 			$options['body']['scheduled_at'] = $date->format( \DateTime::ISO8601 );
 
-			//print( $date->format( \DateTime::ISO8601 ) . ' -  '.  $tweet . '<br>' );
-			//continue;
+//			print( $date->format( \DateTime::ISO8601 ) . ' -  '.  $tweet . '<br>' );
+//			continue;
 
 			$response = $buffer->user()->createUpdate( $tweet, array(
 				getenv( 'BUFFER_ACCOUNT_ID' ),
