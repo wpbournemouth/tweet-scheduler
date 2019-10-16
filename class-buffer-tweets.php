@@ -2,7 +2,8 @@
 namespace WPBournemouth\TweetBuffer;
 
 use Buffer\Client;
-use DMS\Service\Meetup\MeetupKeyAuthClient;
+use SimplePie;
+use duzun\hQuery;
 
 class scheduleMeetupTweets {
 
@@ -10,8 +11,6 @@ class scheduleMeetupTweets {
 	protected $meetup_group;
 	protected $talks;
 	protected $tweets;
-
-	protected $meetup_client;
 
 	/**
 	 * scheduleMeetupTweets constructor.
@@ -24,18 +23,11 @@ class scheduleMeetupTweets {
 		$this->tweets                 = $tweets;
 		$this->meetup_group           = getenv( 'MEETUP_GROUP_URL' );
 
-		$this->meetup_client = MeetupKeyAuthClient::factory( array( 'key' => getenv( 'MEETUP_API_KEY' ) ) );
-
 		if ( false === ( $meetup = $this->getUpcomingMeetup() ) ) {
 			return;
 		}
 
 		$this->meetup = $meetup;
-
-		// Convert the meetup millisecond time to a timestamp
-		$meetup_date = new \DateTime();
-		$meetup_date->setTimestamp( $meetup['time'] / 1000 );
-		$this->meetup['date'] = $meetup_date;
 	}
 
 	/**
@@ -110,8 +102,8 @@ class scheduleMeetupTweets {
 			'[lightning_talk_title]'       => $this->get_talk_title( 'lightning' ),
 			'[lightning_2_speaker_handle]' => $this->get_speaker_handle( 'lightning_2' ),
 			'[lightning_2_talk_title]'     => $this->get_talk_title( 'lightning_2' ),
-			'[meetup_date]'                => $this->meetup['date']->format( 'D jS M' ),
-			'[meetup_link]'                => $this->meetup['link'],
+			'[meetup_date]'                => $this->meetup->date->format( 'D jS M' ),
+			'[meetup_link]'                => $this->meetup->get_permalink(),
 			'[meetup_group_link]'          => 'http://www.meetup.com/' . $this->meetup_group,
 		);
 
@@ -130,15 +122,29 @@ class scheduleMeetupTweets {
 	}
 
 	protected function getUpcomingMeetup() {
-		$response = $this->meetup_client->getGroupEvents( array( 'urlname' => $this->meetup_group ) );
+		$feed = new SimplePie();
 
-		$events = $response->getData();
+		$url = sprintf( 'https://www.meetup.com/%s/events/atom/', $this->meetup_group );
+		$feed->set_feed_url($url);
+		$feed->init();
+		$events = $feed->get_items();
 
 		if ( ! isset ( $events[0] ) ) {
 			return false;
 		}
 
-		return $events[0];
+		$meetup = $events[0];
+
+		$html        = file_get_contents( $meetup->get_permalink() );
+		$meetupDoc   = hQuery::fromHTML( $html );
+		$meetup_date = $meetupDoc->find( 'time.eventStatusLabel' );
+
+		$meetup_time = $meetup_date->attr( 'datetime' );
+		$meetup_date = new \DateTime();
+		$meetup_date->setTimestamp( $meetup_time / 1000 );
+		$meetup->date = $meetup_date;
+
+		return $meetup;
 	}
 
 	public function run() {
@@ -155,7 +161,7 @@ class scheduleMeetupTweets {
 
 			$options['body']['scheduled_at'] = $date->format( \DateTime::ISO8601 );
 
-//			print( $date->format( \DateTime::ISO8601 ) . ' -  '.  $tweet . '<br>' );
+//			print( $date->format( \DateTime::ISO8601 ) . ' -  '.  $tweet . ' - ' . strlen( $tweet ) . '<br>' );
 //			continue;
 
 			$response = $buffer->user()->createUpdate( $tweet, array(
@@ -189,7 +195,7 @@ class scheduleMeetupTweets {
 		array_shift( $parts );
 
 		$days = $parts[0];
-		$date = clone $this->meetup['date'];
+		$date = clone $this->meetup->date;
 		$date->modify( '-' . $days . ' days' );
 
 		$today = new \DateTime();

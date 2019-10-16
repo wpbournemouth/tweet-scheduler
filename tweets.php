@@ -14,8 +14,8 @@ return array(
 	'date-0'        => 'Tonight we welcome [speaker_handle] talking about [talk_title] [meetup_link]',
 	'date-0-13:00'  => 'We also welcome [lightning_speaker_handle] talking about [lightning_talk_title] [meetup_link]',
 	'date-0-13:30'  => 'We also welcome [lightning_2_speaker_handle] talking about [lightning_2_talk_title] [meetup_link]',
-	'date-0-19:00'  => "Thanks to our amazing sponsors @34SP and @dliciousbrains for providing \u{1F355} \u{1F37B}\n#wpbournemouth #WordPress #meetup #community",
+	'date-0-19:00'  => "Thanks to our amazing sponsors @34SP and @dliciousbrains for providing pizza & drinks, and @stickermule for our lovely stickers #wpbournemouth #WordPress #meetup #community",
 	'date-0-19:20'  => "Thanks to @34SP for also providing a 3 month free code for their WordPress hosting\nhttps://www.34sp.com #WordPress #hosting",
 	'date-0-19:25'  => "Thanks @dliciousbrains for also providing a 20% off coupon for their WordPress plugins\nhttps://deliciousbrains.com/ #WordPress #plugins",
-	'date-0-20:00'  => "Thanks @box44uk for having us in their amazing space tonight #wpbournemouth #coworking #bournemouth",
+	'date-0-20:00'  => "Thanks to @media_lounge & @jd_limited for having us in their amazing space tonight  #wpbournemouth #bournemouth",
 );
